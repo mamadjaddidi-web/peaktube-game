@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PeakTube 2048 | Minimalist</title>
+    <title>PeakTube 2048 Elite</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0a0a0a;
-            --grid-bg: #1a1a1a;
-            --tile-empty: #242424;
-            --text-light: #f0f0f0;
+            --bg: #050505;
+            --grid-bg: #111111;
+            --tile-empty: #1a1a1a;
+            --text-light: #ffffff;
             --accent: #ffffff;
+            --transition: 0.15s;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg);
             color: var(--text-light);
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -25,284 +28,286 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            touch-action: none; /* جلوگیری از رفتارهای پیش‌فرض لمسی */
+            touch-action: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .header {
-            width: 90vw;
-            max-width: 400px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
         }
 
-        .logo {
-            font-size: 28px;
+        .brand {
+            font-size: 32px;
             font-weight: 900;
-            letter-spacing: -1.5px;
+            letter-spacing: -2px;
             text-transform: uppercase;
+            background: linear-gradient(to bottom, #fff 0%, #444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .score-container {
+        .scores {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .score-box {
+        .score-card {
             background: var(--grid-bg);
-            padding: 8px 16px;
-            border-radius: 4px;
+            border: 1px solid #222;
+            padding: 10px 15px;
+            border-radius: 8px;
+            min-width: 75px;
             text-align: center;
-            border: 1px solid #333;
         }
 
         .score-label {
             font-size: 9px;
-            color: #777;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             display: block;
         }
 
         .score-value {
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 18px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
         }
 
-        #game-container {
+        #game-board {
             position: relative;
-            width: 90vw;
-            height: 90vw;
-            max-width: 380px;
-            max-height: 380px;
+            aspect-ratio: 1/1;
             background: var(--grid-bg);
-            border-radius: 8px;
-            padding: 10px;
-            box-sizing: border-box;
+            border-radius: 12px;
+            padding: 12px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(4, 1fr);
-            gap: 10px;
+            gap: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
         .tile {
             width: 100%;
             height: 100%;
             background: var(--tile-empty);
-            border-radius: 4px;
+            border-radius: 6px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 800;
-            transition: transform 0.1s, background 0.2s;
+            transition: transform var(--transition), background var(--transition);
+            position: relative;
         }
 
-        /* استایل مونوکروم مات */
-        .tile-2 { background: #2a2a2a; color: #777; }
-        .tile-4 { background: #3a3a3a; color: #999; }
-        .tile-8 { background: #555555; color: #fff; }
-        .tile-16 { background: #777777; color: #fff; }
-        .tile-32 { background: #999999; color: #000; }
-        .tile-64 { background: #bbbbbb; color: #000; }
-        .tile-128 { background: #dddddd; color: #000; }
-        .tile-256 { background: #eeeeee; color: #000; }
-        .tile-512 { background: #ffffff; color: #000; }
+        /* استایل‌های مونوکروم مات برای اعداد */
+        .tile-2 { background: #1a1a1a; color: #666; }
+        .tile-4 { background: #222222; color: #888; }
+        .tile-8 { background: #333333; color: #aaa; }
+        .tile-16 { background: #444444; color: #ccc; }
+        .tile-32 { background: #666666; color: #fff; }
+        .tile-64 { background: #888888; color: #fff; }
+        .tile-128 { background: #aaaaaa; color: #000; }
+        .tile-256 { background: #cccccc; color: #000; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        .tile-512 { background: #eeeeee; color: #000; box-shadow: 0 0 20px rgba(255,255,255,0.3); }
         .tile-1024 { background: #ffffff; color: #000; font-size: 20px; }
-        .tile-2048 { background: #ffffff; color: #000; font-size: 20px; box-shadow: 0 0 20px rgba(255,255,255,0.4); }
+        .tile-2048 { background: #ffffff; color: #000; font-size: 20px; box-shadow: 0 0 30px #fff; }
 
-        .controls {
-            margin-top: 20px;
-            width: 90vw;
-            max-width: 380px;
+        .btn {
+            background: none;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
         }
 
-        #new-game-btn {
-            width: 100%;
-            background: transparent;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            padding: 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 800;
-            transition: 0.3s;
+        .btn:active {
+            background: #fff;
+            color: #000;
+            transform: scale(0.98);
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            color: #333;
+            font-weight: 600;
+            letter-spacing: 2px;
         }
 
         @keyframes pop {
-            0% { transform: scale(0.8); }
-            100% { transform: scale(1); }
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
-        .pop-effect { animation: pop 0.1s ease-out; }
+        .new-tile { animation: pop 0.2s ease-out; }
     </style>
 </head>
 <body>
 
+<div class="container">
     <div class="header">
-        <div class="logo">PeakTube</div>
-        <div class="score-container">
-            <div class="score-box">
-                <span class="score-label">SCORE</span>
+        <div class="brand">PeakTube</div>
+        <div class="scores">
+            <div class="score-card">
+                <span class="score-label">Score</span>
                 <span id="score" class="score-value">0</span>
             </div>
-            <div class="score-box">
-                <span class="score-label">BEST</span>
+            <div class="score-card">
+                <span class="score-label">Best</span>
                 <span id="best" class="score-value">0</span>
             </div>
         </div>
     </div>
 
-    <div id="game-container"></div>
+    <div id="game-board"></div>
 
-    <div class="controls">
-        <button id="new-game-btn">NEW GAME</button>
-    </div>
+    <button class="btn" id="reset-btn">New Session</button>
+    <div class="footer">E L I T E &nbsp; G R A D E</div>
+</div>
 
-    <script>
-        // تنظیمات اختصاصی تلگرام برای جلوگیری از بسته شدن با کشیدن صفحه
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-        tg.disableVerticalSwiping(); // غیرفعال کردن کشیدن به پایین برای بستن
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+    tg.disableVerticalSwiping();
 
-        const gridDisplay = document.getElementById('game-container');
-        const scoreDisplay = document.getElementById('score');
-        const bestDisplay = document.getElementById('best');
-        let board = [];
-        let score = 0;
-        let bestScore = localStorage.getItem('peak-2048-best') || 0;
-        bestDisplay.innerText = bestScore;
+    let board = [];
+    let score = 0;
+    let bestScore = localStorage.getItem('peak_best') || 0;
+    document.getElementById('best').innerText = bestScore;
 
-        function createBoard() {
-            board = Array(4).fill().map(() => Array(4).fill(0));
-            addNumber();
-            addNumber();
-            render();
+    function startGame() {
+        board = Array(16).fill(0);
+        score = 0;
+        addRandomTile();
+        addRandomTile();
+        updateBoard();
+    }
+
+    function addRandomTile() {
+        let emptyTiles = board.map((val, idx) => val === 0 ? idx : null).filter(val => val !== null);
+        if (emptyTiles.length > 0) {
+            let randomIdx = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
+            board[randomIdx] = Math.random() < 0.9 ? 2 : 4;
+            return true;
         }
+        return false;
+    }
 
-        function addNumber() {
-            let options = [];
-            for (let i = 0; i < 4; i++) {
-                for (let j = 0; j < 4; j++) {
-                    if (board[i][j] === 0) options.push({x: i, y: j});
-                }
+    function updateBoard() {
+        const boardElement = document.getElementById('game-board');
+        boardElement.innerHTML = '';
+        board.forEach((value, index) => {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            if (value > 0) {
+                tile.classList.add(`tile-${value}`);
+                tile.classList.add('new-tile');
+                tile.innerText = value;
             }
-            if (options.length > 0) {
-                let spot = options[Math.floor(Math.random() * options.length)];
-                board[spot.x][spot.y] = Math.random() > 0.1 ? 2 : 4;
-            }
-        }
-
-        function render() {
-            gridDisplay.innerHTML = '';
-            for (let i = 0; i < 4; i++) {
-                for (let j = 0; j < 4; j++) {
-                    const tile = document.createElement('div');
-                    tile.classList.add('tile');
-                    const value = board[i][j];
-                    if (value !== 0) {
-                        tile.innerText = value;
-                        tile.classList.add('tile-' + value);
-                        tile.classList.add('pop-effect');
-                    }
-                    gridDisplay.appendChild(tile);
-                }
-            }
-            scoreDisplay.innerText = score;
-            if (score > bestScore) {
-                bestScore = score;
-                bestDisplay.innerText = bestScore;
-                localStorage.setItem('peak-2048-best', bestScore);
-            }
-        }
-
-        function slide(row) {
-            let arr = row.filter(val => val);
-            let zeros = Array(4 - arr.length).fill(0);
-            return arr.concat(zeros);
-        }
-
-        function combine(row) {
-            for (let i = 0; i < 3; i++) {
-                if (row[i] === row[i + 1] && row[i] !== 0) {
-                    row[i] *= 2;
-                    score += row[i];
-                    row[i + 1] = 0;
-                }
-            }
-            return row;
-        }
-
-        function operate(row) {
-            row = slide(row);
-            row = combine(row);
-            row = slide(row);
-            return row;
-        }
-
-        function move(direction) {
-            let pastBoard = JSON.stringify(board);
-            if (direction === 'LEFT' || direction === 'RIGHT') {
-                for (let i = 0; i < 4; i++) {
-                    let row = board[i];
-                    if (direction === 'RIGHT') row.reverse();
-                    row = operate(row);
-                    if (direction === 'RIGHT') row.reverse();
-                    board[i] = row;
-                }
-            } else {
-                for (let i = 0; i < 4; i++) {
-                    let row = [board[0][i], board[1][i], board[2][i], board[3][i]];
-                    if (direction === 'DOWN') row.reverse();
-                    row = operate(row);
-                    if (direction === 'DOWN') row.reverse();
-                    for (let j = 0; j < 4; j++) board[j][i] = row[j];
-                }
-            }
-            if (pastBoard !== JSON.stringify(board)) {
-                addNumber();
-                render();
-            }
-        }
-
-        // کیبورد
-        window.addEventListener('keydown', e => {
-            if (e.key === 'ArrowLeft') move('LEFT');
-            if (e.key === 'ArrowRight') move('RIGHT');
-            if (e.key === 'ArrowUp') move('UP');
-            if (e.key === 'ArrowDown') move('DOWN');
+            boardElement.appendChild(tile);
         });
+        document.getElementById('score').innerText = score;
+        if (score > bestScore) {
+            bestScore = score;
+            localStorage.setItem('peak_best', bestScore);
+            document.getElementById('best').innerText = bestScore;
+        }
+    }
 
-        // لمس و سوایپ (اصلاح شده برای تلگرام)
-        let tsX, tsY;
-        document.addEventListener('touchstart', e => {
-            tsX = e.touches[0].clientX;
-            tsY = e.touches[0].clientY;
-        }, { passive: false });
+    function move(direction) {
+        let hasMoved = false;
+        let tempBoard = [...board];
 
-        document.addEventListener('touchend', e => {
-            let teX = e.changedTouches[0].clientX;
-            let teY = e.changedTouches[0].clientY;
-            let dx = teX - tsX;
-            let dy = teY - tsY;
-            
-            if (Math.abs(dx) > Math.abs(dy)) {
-                if (Math.abs(dx) > 30) move(dx > 0 ? 'RIGHT' : 'LEFT');
-            } else {
-                if (Math.abs(dy) > 30) move(dy > 0 ? 'DOWN' : 'UP');
+        // Logic for 2048 movement
+        if (direction === 'left') {
+            for (let i = 0; i < 4; i++) {
+                let row = board.slice(i * 4, i * 4 + 4);
+                let newRow = slideAndMerge(row);
+                for (let j = 0; j < 4; j++) board[i * 4 + j] = newRow[j];
             }
-        }, { passive: false });
+        } else if (direction === 'right') {
+            for (let i = 0; i < 4; i++) {
+                let row = board.slice(i * 4, i * 4 + 4).reverse();
+                let newRow = slideAndMerge(row).reverse();
+                for (let j = 0; j < 4; j++) board[i * 4 + j] = newRow[j];
+            }
+        } else if (direction === 'up') {
+            for (let i = 0; i < 4; i++) {
+                let col = [board[i], board[i + 4], board[i + 8], board[i + 12]];
+                let newCol = slideAndMerge(col);
+                for (let j = 0; j < 4; j++) board[i + j * 4] = newCol[j];
+            }
+        } else if (direction === 'down') {
+            for (let i = 0; i < 4; i++) {
+                let col = [board[i], board[i + 4], board[i + 8], board[i + 12]].reverse();
+                let newCol = slideAndMerge(col).reverse();
+                for (let j = 0; j < 4; j++) board[i + j * 4] = newCol[j];
+            }
+        }
 
-        // جلوگیری از اسکرول صفحه هنگام بازی
-        document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+        if (JSON.stringify(tempBoard) !== JSON.stringify(board)) {
+            addRandomTile();
+            updateBoard();
+        }
+    }
 
-        document.getElementById('new-game-btn').addEventListener('click', () => {
-            score = 0;
-            createBoard();
-        });
+    function slideAndMerge(line) {
+        let nonZeros = line.filter(val => val !== 0);
+        for (let i = 0; i < nonZeros.length - 1; i++) {
+            if (nonZeros[i] === nonZeros[i + 1]) {
+                nonZeros[i] *= 2;
+                score += nonZeros[i];
+                nonZeros.splice(i + 1, 1);
+            }
+        }
+        while (nonZeros.length < 4) nonZeros.push(0);
+        return nonZeros;
+    }
 
-        createBoard();
-    </script>
+    // Controls
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') move('left');
+        if (e.key === 'ArrowRight') move('right');
+        if (e.key === 'ArrowUp') move('up');
+        if (e.key === 'ArrowDown') move('down');
+    });
+
+    let touchStartX, touchStartY;
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    });
+
+    document.addEventListener('touchend', (e) => {
+        let dx = e.changedTouches[0].clientX - touchStartX;
+        let dy = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(dx) > Math.abs(dy)) {
+            if (Math.abs(dx) > 30) move(dx > 0 ? 'right' : 'left');
+        } else {
+            if (Math.abs(dy) > 30) move(dy > 0 ? 'down' : 'up');
+        }
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', startGame);
+
+    startGame();
+</script>
 </body>
 </html>
