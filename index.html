@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PeakTube 2048 | Minimalist</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --bg-color: #0a0a0a;
@@ -24,7 +25,7 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            touch-action: none; /* جلوگیری از اسکرول بیخود تو موبایل */
+            touch-action: none; /* جلوگیری از رفتارهای پیش‌فرض لمسی */
         }
 
         .header {
@@ -33,11 +34,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .logo {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 900;
             letter-spacing: -1.5px;
             text-transform: uppercase;
@@ -60,11 +61,10 @@
             font-size: 9px;
             color: #777;
             display: block;
-            margin-bottom: 2px;
         }
 
         .score-value {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
         }
 
@@ -72,8 +72,8 @@
             position: relative;
             width: 90vw;
             height: 90vw;
-            max-width: 400px;
-            max-height: 400px;
+            max-width: 380px;
+            max-height: 380px;
             background: var(--grid-bg);
             border-radius: 8px;
             padding: 10px;
@@ -92,12 +92,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 800;
             transition: transform 0.1s, background 0.2s;
         }
 
-        /* رنگ‌بندی مونوکروم مات */
+        /* استایل مونوکروم مات */
         .tile-2 { background: #2a2a2a; color: #777; }
         .tile-4 { background: #3a3a3a; color: #999; }
         .tile-8 { background: #555555; color: #fff; }
@@ -105,15 +105,15 @@
         .tile-32 { background: #999999; color: #000; }
         .tile-64 { background: #bbbbbb; color: #000; }
         .tile-128 { background: #dddddd; color: #000; }
-        .tile-256 { background: #eeeeee; color: #000; box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+        .tile-256 { background: #eeeeee; color: #000; }
         .tile-512 { background: #ffffff; color: #000; }
-        .tile-1024 { background: #ffffff; color: #000; font-size: 22px; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
-        .tile-2048 { background: #ffffff; color: #000; font-size: 22px; box-shadow: 0 0 30px rgba(255,255,255,0.4); }
+        .tile-1024 { background: #ffffff; color: #000; font-size: 20px; }
+        .tile-2048 { background: #ffffff; color: #000; font-size: 20px; box-shadow: 0 0 20px rgba(255,255,255,0.4); }
 
         .controls {
-            margin-top: 25px;
+            margin-top: 20px;
             width: 90vw;
-            max-width: 400px;
+            max-width: 380px;
         }
 
         #new-game-btn {
@@ -121,17 +121,11 @@
             background: transparent;
             border: 1px solid var(--accent);
             color: var(--accent);
-            padding: 14px;
+            padding: 12px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 800;
-            letter-spacing: 1px;
             transition: 0.3s;
-        }
-
-        #new-game-btn:active {
-            background: var(--accent);
-            color: var(--bg-color);
         }
 
         @keyframes pop {
@@ -164,6 +158,12 @@
     </div>
 
     <script>
+        // تنظیمات اختصاصی تلگرام برای جلوگیری از بسته شدن با کشیدن صفحه
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        tg.disableVerticalSwiping(); // غیرفعال کردن کشیدن به پایین برای بستن
+
         const gridDisplay = document.getElementById('game-container');
         const scoreDisplay = document.getElementById('score');
         const bestDisplay = document.getElementById('best');
@@ -217,8 +217,7 @@
 
         function slide(row) {
             let arr = row.filter(val => val);
-            let missing = 4 - arr.length;
-            let zeros = Array(missing).fill(0);
+            let zeros = Array(4 - arr.length).fill(0);
             return arr.concat(zeros);
         }
 
@@ -259,14 +258,13 @@
                     for (let j = 0; j < 4; j++) board[j][i] = row[j];
                 }
             }
-            
             if (pastBoard !== JSON.stringify(board)) {
                 addNumber();
                 render();
             }
         }
 
-        // کنترل با کیبورد
+        // کیبورد
         window.addEventListener('keydown', e => {
             if (e.key === 'ArrowLeft') move('LEFT');
             if (e.key === 'ArrowRight') move('RIGHT');
@@ -274,20 +272,30 @@
             if (e.key === 'ArrowDown') move('DOWN');
         });
 
-        // کنترل با لمس (Swipe)
-        let touchStart = null;
-        window.addEventListener('touchstart', e => { touchStart = {x: e.touches[0].clientX, y: e.touches[0].clientY}; });
-        window.addEventListener('touchend', e => {
-            if (!touchStart) return;
-            let dx = e.changedTouches[0].clientX - touchStart.x;
-            let dy = e.changedTouches[0].clientY - touchStart.y;
+        // لمس و سوایپ (اصلاح شده برای تلگرام)
+        let tsX, tsY;
+        document.addEventListener('touchstart', e => {
+            tsX = e.touches[0].clientX;
+            tsY = e.touches[0].clientY;
+        }, { passive: false });
+
+        document.addEventListener('touchend', e => {
+            let teX = e.changedTouches[0].clientX;
+            let teY = e.changedTouches[0].clientY;
+            let dx = teX - tsX;
+            let dy = teY - tsY;
+            
             if (Math.abs(dx) > Math.abs(dy)) {
                 if (Math.abs(dx) > 30) move(dx > 0 ? 'RIGHT' : 'LEFT');
             } else {
                 if (Math.abs(dy) > 30) move(dy > 0 ? 'DOWN' : 'UP');
             }
-            touchStart = null;
-        });
+        }, { passive: false });
+
+        // جلوگیری از اسکرول صفحه هنگام بازی
+        document.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
 
         document.getElementById('new-game-btn').addEventListener('click', () => {
             score = 0;
